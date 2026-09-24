@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+
+# 编辑器 / IDE
+.idea/
+.vscode/
+.DS_Store
+
+# 测试产物
+tests/output/
+
+# 本地运行时数据（不应提交）
+data/
+*.log
+db.json

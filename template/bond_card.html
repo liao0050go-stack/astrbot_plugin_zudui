@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        /* 四周留出空间容纳 .card 的投影，避免截图把阴影裁掉。
+           padding 左/右 20px + 下 44px；width = 560(卡片) + 40 = 600，
+           需与 main.py 的 VIEWPORT_WIDTH 保持一致。 */
+        margin: 0; padding: 20px 20px 44px; width: 600px; display: inline-block;
+        background: #ffffff;
+    }
+    .card {
+        width: 560px; border-radius: 20px; overflow: hidden;
+        background: #fff; box-shadow: 0 6px 24px rgba(0,0,0,.12);
+    }
+    /* ---- 缘分卡 5 档主题：绿 / 蓝 / 黄 / 橙 / 红，随好感度升级 ---- */
+    .theme-lv1 .banner { background: linear-gradient(135deg, #56ab91 0%, #7ed9a3 100%); }
+    .theme-lv2 .banner { background: linear-gradient(135deg, #4a90d9 0%, #7ec8f0 100%); }
+    .theme-lv3 .banner { background: linear-gradient(135deg, #e8b530 0%, #f7d97a 100%); }
+    .theme-lv4 .banner { background: linear-gradient(135deg, #ef8a3c 0%, #f7b267 100%); }
+    .theme-lv5 .banner { background: linear-gradient(135deg, #e0475f 0%, #f4708a 50%, #e0475f 100%); }
+    .theme-calm   .banner { background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%); }
+    .theme-love   .banner { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+    .theme-sweet  .banner { background: linear-gradient(135deg, #f78ca0 0%, #f9748f 100%); }
+    .theme-gold   .banner { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+    .theme-single .banner { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+    .theme-tea    .banner { background: linear-gradient(135deg, #96e6a1 0%, #43e97b 100%); }
+    .theme-menu   .banner { background: linear-gradient(135deg, #7f7fd5 0%, #86a8e7 50%, #91eae4 100%); }
+    .theme-record .banner { background: linear-gradient(135deg, #5b6c9e 0%, #8194c4 55%, #a8b8dd 100%); }
+    .banner { padding: 22px 0 18px; text-align: center; color: #fff; }
+    .banner .title { font-size: 22px; font-weight: bold; letter-spacing: 6px; }
+    .badge {
+        display: inline-block; margin-top: 8px; padding: 3px 12px; font-size: 12px;
+        background: rgba(255,255,255,.28); border-radius: 10px;
+    }
+    .couple { display: flex; align-items: center; justify-content: center; padding: 26px 0 10px; }
+    .side { width: 180px; text-align: center; }
+    .avatar {
+        width: 96px; height: 96px; border-radius: 50%; object-fit: cover;
+        border: 4px solid #ffd3e0; background: #ffe9f0;
+    }
+    .name { margin-top: 10px; font-size: 16px; color: #444; font-weight: bold;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .heart { font-size: 34px; padding: 0 8px; }
+    .rows { padding: 10px 34px 6px; }
+    .row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px dashed #ffe4ec; }
+    .row:last-child { border-bottom: none; }
+    .label { width: 130px; color: #999; font-size: 14px; }
+    .value { flex: 1; color: #444; font-size: 15px; font-weight: bold; }
+    .bar { flex: 1; height: 12px; background: #ffeef3; border-radius: 6px; overflow: hidden; margin-right: 10px; }
+    .bar > div { height: 100%; border-radius: 6px; }
+    .theme-lv1 .bar > div { background: linear-gradient(90deg, #56ab91, #7ed9a3); }
+    .theme-lv2 .bar > div { background: linear-gradient(90deg, #4a90d9, #7ec8f0); }
+    .theme-lv3 .bar > div { background: linear-gradient(90deg, #e8b530, #f7d97a); }
+    .theme-lv4 .bar > div { background: linear-gradient(90deg, #ef8a3c, #f7b267); }
+    .theme-lv5 .bar > div { background: linear-gradient(90deg, #e0475f, #f4708a); }
+    .theme-calm   .bar > div { background: linear-gradient(90deg, #89f7fe, #66a6ff); }
+    .theme-love   .bar > div { background: linear-gradient(90deg, #ff9a9e, #fecfef); }
+    .theme-sweet  .bar > div { background: linear-gradient(90deg, #f78ca0, #f9748f); }
+    .theme-gold   .bar > div { background: linear-gradient(90deg, #f6d365, #fda085); }
+    .theme-single .bar > div { background: linear-gradient(90deg, #a18cd1, #fbc2eb); }
+    .theme-tea    .bar > div { background: linear-gradient(90deg, #96e6a1, #43e97b); }
+    /* ---- 菜单卡 ---- */
+    /* 分组标题：去掉 emoji 后放大加粗，作为视觉锚点 */
+    .menu { padding: 14px 26px 2px; }
+    .menu-group { margin-bottom: 14px; }
+    .menu-group .g-title {
+        font-size: 22px; font-weight: 800; color: #4a4a68;
+        padding: 4px 0 10px; letter-spacing: 3px;
+        display: flex; align-items: center;
+        border-left: 5px solid #a99ee0; padding-left: 12px;
+        margin-bottom: 4px;
+    }
+    .menu-group .g-tag {
+        margin-left: 8px; padding: 1px 8px; border-radius: 8px;
+        font-size: 11px; font-weight: normal; letter-spacing: 0;
+        color: #5b7fbf; background: #e8f0fd; border: 1px solid #cddffa;
+    }
+    .menu-group .g-note {
+        font-size: 12px; color: #9a9aab; line-height: 1.6;
+        background: #faf9fe; border-left: 3px solid #d9d6ee;
+        padding: 7px 10px; margin: 0 0 8px; border-radius: 0 8px 8px 0;
+    }
+    .menu-item { display: flex; align-items: baseline; padding: 6px 0; }
+    .menu-item .cmd {
+        flex: 0 0 190px; font-size: 14px; font-weight: bold; color: #4a4a68;
+        font-family: 'Menlo', 'Consolas', monospace;
+    }
+    .menu-item .desc { flex: 1; font-size: 13px; color: #9a9aab; line-height: 1.5; }
+    .tips {
+        margin: 6px 26px 0; padding: 12px 16px; border-radius: 12px;
+        background: #f6f5fb; border: 1px dashed #d9d6ee;
+    }
+    .tips .t-title { font-size: 13px; font-weight: bold; color: #6a6a8a; padding-bottom: 6px; }
+    .tips .t-row { display: flex; padding: 3px 0; font-size: 12px; }
+    .tips .t-label { flex: 0 0 96px; color: #9a9aab; }
+    .tips .t-value { flex: 1; color: #5a5a72; font-weight: bold; }
+    /* ---- 缘分卡：随好感度递增的花纹装饰（lv1 素净 -> lv5 满屏炫彩）---- */
+    .card { position: relative; }
+    .deco { position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+            border-radius: 20px; }
+    .deco > i { position: absolute; display: block; }
+
+    /* lv1+：顶部两侧柔光 */
+    .deco .glow-l, .deco .glow-r {
+        top: -40px; width: 160px; height: 160px; border-radius: 50%;
+        opacity: .5; filter: blur(28px);
+    }
+    .deco .glow-l { left: -50px; } .deco .glow-r { right: -50px; }
+    .theme-lv1 .glow-l, .theme-lv1 .glow-r { background: #7ed9a3; }
+    .theme-lv2 .glow-l, .theme-lv2 .glow-r { background: #7ec8f0; }
+    .theme-lv3 .glow-l, .theme-lv3 .glow-r { background: #f7d97a; }
+    .theme-lv4 .glow-l, .theme-lv4 .glow-r { background: #f7b267; }
+    .theme-lv5 .glow-l, .theme-lv5 .glow-r { background: #f4708a; }
+
+    /* lv2+：banner 上的细斜纹 */
+    .deco .stripes {
+        top: 0; left: 0; right: 0; height: 78px; opacity: 0;
+        background-image: repeating-linear-gradient(45deg,
+            rgba(255,255,255,.22) 0 8px, transparent 8px 18px);
+    }
+    .theme-lv2 .stripes, .theme-lv3 .stripes,
+    .theme-lv4 .stripes, .theme-lv5 .stripes { opacity: 1; }
+
+    /* lv3+：飘落的心形 */
+    .deco .hearts { inset: 0; opacity: 0; }
+    .deco .hearts span {
+        position: absolute;
+        /* 用主题色半透明：白色装饰压在白色卡片主体上会看不见 */
+        color: rgba(120,120,150,.30);
+    }
+    .theme-lv1 .hearts span { color: rgba(86,171,145,.34); }
+    .theme-lv2 .hearts span { color: rgba(74,144,217,.34); }
+    .theme-lv3 .hearts span { color: rgba(216,168,32,.36); }
+    .theme-lv4 .hearts span { color: rgba(228,124,44,.36); }
+    .theme-lv5 .hearts span { color: rgba(214,58,86,.38); }
+    .theme-lv3 .hearts { opacity: .85; }
+    .theme-lv4 .hearts { opacity: .95; }
+    .theme-lv5 .hearts { opacity: 1; }
+
+    /* lv4+：底部星点 */
+    .deco .stars { inset: 0; opacity: 0; }
+    .deco .stars span { position: absolute;
+        color: rgba(214,168,40,.95);
+        text-shadow: 0 0 6px rgba(240,190,90,.85); }
+    .theme-lv4 .stars { opacity: .8; }
+    .theme-lv5 .stars { opacity: 1; }
+
+    /* lv5：外发光边框 + 顶部彩虹光带 */
+    .theme-lv5 .card, .layout-two.theme-lv5 {
+        box-shadow: 0 6px 24px rgba(224,71,95,.28), 0 0 0 2px rgba(244,112,138,.35) inset;
+    }
+    .deco .aurora {
+        top: 0; left: 0; right: 0; height: 6px; opacity: 0;
+        background: linear-gradient(90deg,#ff9a9e,#fad0c4,#fbc2eb,#a18cd1,#84fab0,#8fd3f4);
+    }
+    .theme-lv5 .aurora { opacity: .95; }
+    /* ---- 对象记录卡 ---- */
+    .record { padding: 14px 24px 4px; }
+    .rec-sum {
+        display: flex; justify-content: space-around; text-align: center;
+        background: #f6f7fc; border-radius: 12px; padding: 12px 0; margin-bottom: 14px;
+    }
+    .rec-sum .n { font-size: 20px; font-weight: 800; color: #4a5578; }
+    .rec-sum .t { font-size: 11px; color: #9aa2bd; margin-top: 2px; }
+    .rec-h {
+        font-size: 16px; font-weight: 800; color: #4a5578; letter-spacing: 2px;
+        border-left: 5px solid #8f9ec7; padding-left: 10px; margin: 12px 0 8px;
+    }
+    .rec-couple {
+        padding: 8px 0; border-bottom: 1px dashed #e6e9f5;
+    }
+    .rec-couple:last-child { border-bottom: none; }
+    .rec-line { font-size: 14px; color: #3f4760; font-weight: bold; }
+    .rec-line .aff { float: right; font-weight: normal; color: #8f9ec7; font-size: 12px; }
+    .rec-tag { font-size: 11px; color: #b8860b; margin-left: 6px; font-weight: normal; }
+    .rec-bar { height: 6px; background: #eef0f8; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+    .rec-bar > div { height: 100%; border-radius: 3px; }
+    .rec-bar.lv1 > div { background: linear-gradient(90deg,#56ab91,#7ed9a3); }
+    .rec-bar.lv2 > div { background: linear-gradient(90deg,#4a90d9,#7ec8f0); }
+    .rec-bar.lv3 > div { background: linear-gradient(90deg,#e8b530,#f7d97a); }
+    .rec-bar.lv4 > div { background: linear-gradient(90deg,#ef8a3c,#f7b267); }
+    .rec-bar.lv5 > div { background: linear-gradient(90deg,#e0475f,#f4708a); }
+    .rec-tea { font-size: 13px; color: #4a5578; padding: 7px 0; }
+    .rec-tea .dot { color: #7ec89a; margin-right: 6px; }
+    .rec-empty { font-size: 13px; color: #aab0c4; padding: 6px 0 10px; }
+    .footer { padding: 12px 0 18px; text-align: center; color: #c9a0a8; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="card theme-{{ theme }} layout-{{ layout }}">
+    {% if layout == 'two' and deco_hearts %}
+    <div class="deco">
+        <i class="glow-l"></i><i class="glow-r"></i>
+        <i class="stripes"></i>
+        <i class="aurora"></i>
+        <i class="hearts">
+            {% for h in deco_hearts %}<span style="left:{{ h.x }}%;top:{{ h.y }}%;font-size:{{ h.size }}px;">{{ h.ch }}</span>{% endfor %}
+        </i>
+        <i class="stars">
+            {% for st in deco_stars %}<span style="left:{{ st.x }}%;top:{{ st.y }}%;font-size:{{ st.size }}px;">{{ st.ch }}</span>{% endfor %}
+        </i>
+    </div>
+    {% endif %}
+    <div class="banner">
+        <div class="title">{{ title }}</div>
+        {% if badge %}<div class="badge">{{ badge }}</div>{% endif %}
+    </div>
+    {% if layout == 'record' %}
+    <div class="record">
+        <div class="rec-sum">
+            <div><div class="n">{{ single_count }}</div><div class="t">单身</div></div>
+            <div><div class="n">{{ couple_count }}</div><div class="t">恋爱中</div></div>
+            <div><div class="n">{{ tea_count }}</div><div class="t">相亲中</div></div>
+        </div>
+        <div class="rec-h">恋爱中</div>
+        {% if couples %}
+            {% for c in couples %}
+            <div class="rec-couple">
+                <div class="rec-line">{{ c.a_name }} ❤ {{ c.b_name }}
+                    {% if c.tag %}<span class="rec-tag">{{ c.tag }}</span>{% endif %}
+                    <span class="aff">好感 {{ c.affection }} · 第 {{ c.days }} 天</span>
+                </div>
+                <div class="rec-bar {{ c.theme }}"><div style="width:{{ c.bar }}%"></div></div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="rec-empty">本群暂时还没有情侣～</div>
+        {% endif %}
+        <div class="rec-h">相亲中</div>
+        {% if teas %}
+            {% for t in teas %}
+            <div class="rec-tea"><span class="dot">🍵</span>{{ t.a_name }} 与 {{ t.b_name }}</div>
+            {% endfor %}
+        {% else %}
+            <div class="rec-empty">今天还没有人相亲～</div>
+        {% endif %}
+    </div>
+    {% elif layout == 'menu' %}
+    <div class="menu">
+        {% for g in groups %}
+        <div class="menu-group">
+            <div class="g-title">{{ g.group }}{% if g.tag %}<span class="g-tag">{{ g.tag }}</span>{% endif %}</div>
+            {% if g.note %}<div class="g-note">{{ g.note }}</div>{% endif %}
+            {% for it in g['items'] %}
+            <div class="menu-item">
+                <div class="cmd">{{ it.cmd }}</div>
+                <div class="desc">{{ it.desc }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% if tips %}
+    <div class="tips">
+        <div class="t-title">⚙️ 当前参数</div>
+        {% for t in tips %}
+        <div class="t-row">
+            <div class="t-label">{{ t.label }}</div>
+            <div class="t-value">{{ t.value }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% elif layout == 'two' %}
+    <div class="couple">
+        <div class="side">
+            {% if a_avatar %}<img class="avatar" src="{{ a_avatar }}">{% endif %}
+            <div class="name">{{ a_name }}</div>
+        </div>
+        {% if heart %}<div class="heart">{{ heart }}</div>{% endif %}
+        <div class="side">
+            {% if b_avatar %}<img class="avatar" src="{{ b_avatar }}">{% endif %}
+            <div class="name">{{ b_name }}</div>
+        </div>
+    </div>
+    {% else %}
+    <div class="couple">
+        <div class="side">
+            {% if a_avatar %}<img class="avatar" src="{{ a_avatar }}">{% endif %}
+            <div class="name">{{ a_name }}</div>
+        </div>
+    </div>
+    {% endif %}
+    {% if layout != 'menu' and layout != 'record' %}
+    <div class="rows">
+        {% for r in rows %}
+        <div class="row">
+            <div class="label">{{ r.label }}</div>
+            {% if r.bar is not none %}
+            <div class="bar"><div style="width: {{ r.bar }}%"></div></div>
+            {% endif %}
+            <div class="value" {% if r.bar is not none %}style="flex: 0 0 90px; text-align: right;"{% endif %}>{{ r.value }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="footer">「 {{ quote }} 」</div>
+</div>
+</body>
+</html>

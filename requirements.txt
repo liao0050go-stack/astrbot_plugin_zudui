@@ -1,0 +1,1 @@
+# 组对象插件无额外第三方依赖（AstrBot 内置 html_render/Playwright 由框架提供）

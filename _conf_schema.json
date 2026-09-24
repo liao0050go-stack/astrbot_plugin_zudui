@@ -1,0 +1,68 @@
+{
+    "base_rate": {
+        "type": "int",
+        "description": "抢人基础成功率(%)",
+        "hint": "好感度为 0 时的被抢成功率，公式：成功率 = base_rate - rate_k × 好感度。",
+        "default": 80
+    },
+    "rate_k": {
+        "type": "float",
+        "description": "好感度成功率系数",
+        "hint": "每点好感度降低的成功率。默认 0.7：好感 100 时成功率恰好为 10%。",
+        "default": 0.7
+    },
+    "affection_cap": {
+        "type": "int",
+        "description": "好感度上限",
+        "hint": "好感度封顶值，达到后显示金婚防御（成功率不再下降）。",
+        "default": 100
+    },
+    "daily_affection": {
+        "type": "int",
+        "description": "每日自动好感",
+        "hint": "每段关系每天自动增加的好感度，懒结算（交互时补算）。",
+        "default": 5
+    },
+    "gift_affection": {
+        "type": "int",
+        "description": "送礼好感",
+        "hint": "每次送礼增加的好感度，每人每天限送一次。",
+        "default": 2
+    },
+    "request_expire_minutes": {
+        "type": "int",
+        "description": "表白/离婚请求有效期(分钟)",
+        "hint": "超时自动作废，不计入拒绝。",
+        "default": 5
+    },
+    "target_steal_cap": {
+        "type": "int",
+        "description": "同一目标每日被抢上限",
+        "hint": "同一对象一天内最多被尝试抢的次数。",
+        "default": 3
+    },
+    "safety_hours": {
+        "type": "int",
+        "description": "新婚安全期(小时)",
+        "hint": "表白成功建立的关系在安全期内不可被抢。抢来的关系没有安全期。",
+        "default": 24
+    },
+    "steal_daily_limit": {
+        "type": "int",
+        "description": "每日抢人/拆散次数",
+        "hint": "抢对象与拆散共用该额度，成功失败都消耗。",
+        "default": 1
+    },
+    "quote_reply_required": {
+        "type": "bool",
+        "description": "强制引用回复确认",
+        "hint": "开启后，同意表白/同意离婚必须引用机器人的请求消息。若平台无法获取消息 id（非 aiocqhttp），该限制自动放宽。",
+        "default": true
+    },
+    "keyword_trigger_enabled": {
+        "type": "bool",
+        "description": "启用无前缀指令",
+        "hint": "开启后直接发送「表白」「抢对象」等指令词即可触发（精准匹配）；关闭则只能用 / 前缀。",
+        "default": true
+    }
+}
