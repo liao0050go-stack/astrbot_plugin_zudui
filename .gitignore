@@ -18,3 +18,7 @@ tests/output/
 data/
 *.log
 db.json
+
+# 卡片预览产物（可用 tests/preview_cards.py 重新生成）
+tests/card_*.html
+tests/pattern_preview.html

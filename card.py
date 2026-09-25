@@ -25,42 +25,59 @@ def avatar_url(uid: str) -> str:
 
 # ---------------------------------------------------------------- 卡片装饰（随好感度递增）
 
-# 档位 -> 飘落心形数量（越多越繁华）
-_HEART_COUNT = {"lv1": 0, "lv2": 0, "lv3": 6, "lv4": 9, "lv5": 13}
-# 档位 -> 星点数量（lv4 起出现，金色闪光）
-_STAR_COUNT = {"lv1": 0, "lv2": 0, "lv3": 0, "lv4": 5, "lv5": 9}
-_HEART_CHARS = ("❤", "♥", "💗")
-_STAR_CHARS = ("✦", "✧", "✩", "⋆")
+# 各档位的装饰强度表：档位越高，元素越多、越花。
+# hearts/stars 为飘落元素数量；watermark 为内容区大字水印。
+_DECO_TABLE = {
+    "lv1": {"hearts": 0,  "stars": 0,  "wm": ""},
+    "lv2": {"hearts": 0,  "stars": 0,  "wm": ""},
+    "lv3": {"hearts": 10, "stars": 0,  "wm": "❀"},
+    "lv4": {"hearts": 16, "stars": 10, "wm": "❀"},
+    "lv5": {"hearts": 24, "stars": 18, "wm": "✿"},
+}
+_HEART_CHARS = ("❤", "♥", "💕", "💗", "❥", "🌸")
+_STAR_CHARS = ("✦", "✧", "✩", "⋆", "✨", "⚝")
 
 
-def _rand_spots(n: int, chars, y_range=(8, 92), size_range=(11, 20)):
-    """随机撒点：返回 [{"x","y","size","ch"}]。
+def _rand_spots(n, chars, y_range=(6, 94), size_range=(12, 26), allow_center=False):
+    """随机撒点，返回 [{"x","y","size","ch","op","rot"}]。
 
-    装饰是为「繁华感」服务的，必须避开正文，否则会压在昵称/数值上影响阅读。
-    因此只在卡片两侧的窄带撒点（左 2%~17%、右 83%~98%）。
+    装饰必须避开正文，否则会压在昵称/数值上影响阅读。
+    默认只走卡片左右两侧的窄带（正文内边距仅 34px），
+    档位很高时允许少量落在中部空隙（allow_center）以增强繁华感。
     """
     spots = []
     for _ in range(n):
-        # 卡片内边距仅 34px，装饰带必须贴在两条边缘的窄条里才不会压字
-        if random.random() < 0.5:
-            x = random.uniform(0.5, 5.5)    # 左边缘带（约 3~31px）
+        if allow_center and random.random() < 0.28:
+            x = random.uniform(20, 80)      # 中部（靠上下空隙，配合 y 范围）
+            y = random.choice((random.uniform(4, 12), random.uniform(88, 96)))
         else:
-            x = random.uniform(94.5, 99)    # 右边缘带（约 529~554px）
+            if random.random() < 0.5:
+                x = random.uniform(0.5, 5.5)    # 左边缘带
+            else:
+                x = random.uniform(94.5, 99)    # 右边缘带
+            y = random.uniform(*y_range)
         spots.append({
             "x": round(x, 1),
-            "y": round(random.uniform(*y_range), 1),
+            "y": round(y, 1),
             "size": random.randint(*size_range),
             "ch": random.choice(chars),
+            "op": round(random.uniform(0.35, 0.85), 2),
+            "rot": random.randint(-35, 35),
         })
     return spots
 
 
 def build_deco(theme: str) -> dict:
-    """按主题档位生成装饰元素。lv1/lv2 无飘落元素，lv3+ 逐渐繁华。"""
+    """按档位生成装饰。lv1/lv2 素净，lv3+ 逐步叠加飘落元素与水印。"""
+    cfg = _DECO_TABLE.get(theme, {"hearts": 0, "stars": 0, "wm": ""})
     return {
-        "deco_hearts": _rand_spots(_HEART_COUNT.get(theme, 0), _HEART_CHARS),
-        "deco_stars": _rand_spots(_STAR_COUNT.get(theme, 0), _STAR_CHARS,
-                                  y_range=(10, 88), size_range=(9, 16)),
+        "deco_hearts": _rand_spots(cfg["hearts"], _HEART_CHARS,
+                                   size_range=(13, 28),
+                                   allow_center=theme in ("lv4", "lv5")),
+        "deco_stars": _rand_spots(cfg["stars"], _STAR_CHARS,
+                                  size_range=(10, 20),
+                                  allow_center=theme == "lv5"),
+        "deco_watermark": cfg["wm"],
     }
 
 # ---------------------------------------------------------------- 恋爱卡

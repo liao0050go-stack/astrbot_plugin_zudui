@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    * { box-sizing: border-box; }
+    /* 深夜底：星野 + 极光晕（所有卡片统一夜幕，鎏金元素在其上发亮） */
+    body {
+        font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        margin: 0; padding: 20px 20px 44px; width: 600px; display: inline-block;
+        background:
+            radial-gradient(1.4px 1.4px at 7% 12%,  rgba(255,255,255,.9), transparent 60%),
+            radial-gradient(1.1px 1.1px at 22% 28%, rgba(255,255,255,.55), transparent 60%),
+            radial-gradient(1.6px 1.6px at 31% 8%,  rgba(255,255,255,.75), transparent 60%),
+            radial-gradient(1.1px 1.1px at 47% 21%, rgba(255,255,255,.5), transparent 60%),
+            radial-gradient(1.5px 1.5px at 58% 6%,  rgba(255,255,255,.8), transparent 60%),
+            radial-gradient(1.1px 1.1px at 71% 17%, rgba(255,255,255,.55), transparent 60%),
+            radial-gradient(1.5px 1.5px at 84% 9%,  rgba(255,255,255,.8), transparent 60%),
+            radial-gradient(1.2px 1.2px at 93% 25%, rgba(255,255,255,.6), transparent 60%),
+            radial-gradient(1.2px 1.2px at 16% 88%, rgba(255,255,255,.5), transparent 60%),
+            radial-gradient(1.4px 1.4px at 89% 82%, rgba(255,255,255,.7), transparent 60%),
+            radial-gradient(240px 180px at 12% 4%,  rgba(99,102,241,.22), transparent 70%),
+            radial-gradient(260px 200px at 90% 10%, rgba(236,72,153,.14), transparent 70%),
+            radial-gradient(300px 220px at 50% 108%, rgba(56,189,248,.14), transparent 70%),
+            linear-gradient(165deg, #0a0f24 0%, #121a3e 48%, #0b1128 100%);
+    }
+    /* ================= 卡片本体：夜幕玻璃 + 鎏金细框 ================= */
+    .card {
+        position: relative; width: 560px; border-radius: 22px; overflow: hidden;
+        color: #eef1ff;
+        background: linear-gradient(168deg, rgba(23,30,66,.94) 0%, rgba(13,18,44,.96) 60%, rgba(16,22,52,.94) 100%);
+        border: 1px solid rgba(233,196,106,.5);
+        outline: 1px solid rgba(233,196,106,.16); outline-offset: -7px;
+        box-shadow: 0 14px 40px rgba(0,0,0,.5), 0 0 26px var(--glow, rgba(148,163,255,.18));
+    }
+    /* 主题强调色（--ac 强调 / --ac2 渐变副色 / --glow 外发光） */
+    .theme-lv1     { --ac:#4ade9d; --ac2:#a7f3d0; --glow:rgba(74,222,157,.22); }
+    .theme-lv2     { --ac:#38bdf8; --ac2:#bae6fd; --glow:rgba(56,189,248,.22); }
+    .theme-lv3     { --ac:#fbbf24; --ac2:#fde68a; --glow:rgba(251,191,36,.26); }
+    .theme-lv4     { --ac:#fb923c; --ac2:#fed7aa; --glow:rgba(251,146,60,.26); }
+    .theme-lv5     { --ac:#fb6b8d; --ac2:#fecdd6; --glow:rgba(251,107,141,.3); }
+    .theme-single  { --ac:#a78bfa; --ac2:#ddd6fe; --glow:rgba(167,139,250,.24); }
+    .theme-tea     { --ac:#4ade80; --ac2:#bbf7d0; --glow:rgba(74,222,128,.22); }
+    .theme-menu    { --ac:#818cf8; --ac2:#c7d2fe; --glow:rgba(129,140,248,.22); }
+    .theme-record  { --ac:#94a9d6; --ac2:#dbe4ff; --glow:rgba(148,169,214,.2); }
+
+    /* 鎏金花丝角饰 ×4（模板自带，全部卡片可见；档位越高越清晰） */
+    .corner { position: absolute; width: 118px; height: 118px; color: #e9c46a; opacity: .38;
+              pointer-events: none; filter: drop-shadow(0 0 4px rgba(233,196,106,.35)); }
+    .corner.tl { top: 6px; left: 6px; }
+    .corner.tr { top: 6px; right: 6px; transform: scaleX(-1); }
+    .corner.bl { bottom: 6px; left: 6px; transform: scaleY(-1); }
+    .corner.br { bottom: 6px; right: 6px; transform: scale(-1,-1); }
+    .theme-lv3 .corner { opacity: .6; }
+    .theme-lv4 .corner { opacity: .8; }
+    .theme-lv5 .corner { opacity: 1; filter: drop-shadow(0 0 6px rgba(233,196,106,.6)); }
+    .theme-menu .corner, .theme-record .corner { opacity: .45; }
+
+    /* 扭索纹玫瑰盘水印：卡片正中的极淡雕纹（lv3+ 浮现） */
+    .rosette { position: absolute; width: 430px; height: 430px; left: 50%; top: 56%;
+               transform: translate(-50%,-50%); color: #e9c46a; opacity: 0; pointer-events: none; }
+    .theme-lv3 .rosette { opacity: .07; }
+    .theme-lv4 .rosette { opacity: .09; }
+    .theme-lv5 .rosette { opacity: .12; }
+
+    /* ================= banner ================= */
+    .banner { position: relative; text-align: center; padding: 30px 0 6px; z-index: 2; }
+    .crest { display: block; margin: 0 auto 2px; height: 40px; opacity: 0; }
+    .theme-lv5 .crest { opacity: 1; filter: drop-shadow(0 0 10px rgba(251,191,36,.75)); }
+    .banner .title { font-size: 23px; font-weight: 800; letter-spacing: 7px; color: #fdf6e3;
+                     text-shadow: 0 0 18px var(--glow), 0 2px 6px rgba(0,0,0,.6); }
+    .badge {
+        display: inline-block; margin-top: 9px; padding: 3px 14px; font-size: 12px; color: #f6f2e4;
+        background: rgba(233,196,106,.12); border: 1px solid rgba(233,196,106,.4);
+        border-radius: 999px; letter-spacing: 1px;
+    }
+    .banner-line { height: 2px; margin: 14px 60px 0; border-radius: 1px;
+                   background: linear-gradient(90deg, transparent, var(--ac) 30%, #e9c46a 50%, var(--ac) 70%, transparent);
+                   box-shadow: 0 0 8px var(--glow); }
+
+    /* ================= 人物区 ================= */
+    .couple { position: relative; display: flex; align-items: center; justify-content: center;
+              padding: 26px 0 12px; z-index: 2; }
+    .side { width: 190px; text-align: center; }
+    .avatar-wrap { position: relative; display: inline-block; }
+    .avatar {
+        width: 96px; height: 96px; border-radius: 50%; object-fit: cover; display: block;
+        border: 3px solid rgba(233,196,106,.85);
+        box-shadow: 0 0 0 2px rgba(10,14,34,.9), 0 0 0 3.5px var(--ac),
+                    0 0 18px var(--glow), 0 6px 14px rgba(0,0,0,.5);
+        background: #1a2148;
+    }
+    .name { margin-top: 10px; font-size: 16px; font-weight: bold; color: #f6f7ff;
+            text-shadow: 0 1px 4px rgba(0,0,0,.7);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .heart { width: 52px; text-align: center; }
+    .heart img { width: 44px; height: 44px; filter: drop-shadow(0 0 10px var(--glow)) drop-shadow(0 3px 5px rgba(0,0,0,.5)); }
+    .heart span { font-size: 32px; }
+
+    /* ================= 信息行（玻璃芯片） ================= */
+    .rows { position: relative; z-index: 2; padding: 8px 30px 4px; }
+    .row { display: flex; align-items: center; padding: 10px 14px; margin: 8px 0;
+           background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+           border-radius: 12px; }
+    .label { width: 118px; color: #8a93b8; font-size: 13.5px; letter-spacing: 1px; }
+    .value { flex: 1; color: #f3f5ff; font-size: 14.5px; font-weight: bold; }
+    .bar { flex: 1; height: 10px; background: rgba(255,255,255,.08); border-radius: 5px;
+           overflow: hidden; margin-right: 12px; }
+    .bar > div { height: 100%; border-radius: 5px;
+                 background: linear-gradient(90deg, var(--ac), var(--ac2));
+                 box-shadow: 0 0 8px var(--glow); }
+
+    /* ================= 对象记录卡 ================= */
+    .record { position: relative; z-index: 2; padding: 8px 26px 2px; }
+    .rec-sum { display: flex; justify-content: space-around; text-align: center;
+               background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+               border-radius: 14px; padding: 12px 0; margin-bottom: 6px; }
+    .rec-sum .n { font-size: 21px; font-weight: 800;
+                  background: linear-gradient(180deg, #fff, var(--ac2));
+                  -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .rec-sum .t { font-size: 11px; color: #8a93b8; margin-top: 2px; letter-spacing: 2px; }
+    .rec-h { font-size: 15px; font-weight: 800; color: #e9c46a; letter-spacing: 3px;
+             margin: 14px 0 6px; display: flex; align-items: center; }
+    .rec-h svg { width: 26px; height: 14px; margin-right: 8px; }
+    .rec-couple { padding: 9px 2px; border-bottom: 1px dashed rgba(255,255,255,.09); }
+    .rec-couple:last-child { border-bottom: none; }
+    .rec-line { font-size: 14px; color: #f3f5ff; font-weight: bold; }
+    .rec-line .aff { float: right; font-weight: normal; color: #8a93b8; font-size: 12px; }
+    .rec-tag { font-size: 11px; color: #0d1230; background: linear-gradient(90deg, #e9c46a, var(--ac));
+               border-radius: 8px; padding: 1px 8px; margin-left: 6px; font-weight: bold; }
+    .rec-bar { height: 6px; background: rgba(255,255,255,.08); border-radius: 3px;
+               margin-top: 6px; overflow: hidden; }
+    .rec-bar > div { height: 100%; border-radius: 3px; }
+    .rec-bar.lv1 > div { background: linear-gradient(90deg,#0ea5e9,#4ade9d); }
+    .rec-bar.lv2 > div { background: linear-gradient(90deg,#38bdf8,#7dd3fc); }
+    .rec-bar.lv3 > div { background: linear-gradient(90deg,#d97706,#fbbf24); }
+    .rec-bar.lv4 > div { background: linear-gradient(90deg,#ea580c,#fb923c); }
+    .rec-bar.lv5 > div { background: linear-gradient(90deg,#be123c,#fb6b8d,#e9c46a); }
+    .rec-tea { font-size: 13px; color: #dfe4ff; padding: 7px 2px; }
+    .rec-tea .dot { margin-right: 6px; }
+    .rec-empty { font-size: 13px; color: #6b7399; padding: 6px 0 10px; }
+
+    /* ================= 帮助菜单卡 ================= */
+    .menu { position: relative; z-index: 2; padding: 8px 26px 2px; }
+    .menu-group { margin-bottom: 14px; }
+    .menu-group .g-title {
+        font-size: 19px; font-weight: 800; color: #e9c46a; letter-spacing: 4px;
+        display: flex; align-items: center; margin-bottom: 6px;
+    }
+    .menu-group .g-title svg { width: 30px; height: 15px; margin-right: 8px; flex: 0 0 auto; }
+    .menu-group .g-tag {
+        margin-left: 8px; padding: 1px 9px; border-radius: 999px;
+        font-size: 11px; font-weight: normal; letter-spacing: 0;
+        color: #e9c46a; background: rgba(233,196,106,.1); border: 1px solid rgba(233,196,106,.4);
+    }
+    .menu-group .g-note {
+        font-size: 12px; color: #9aa3c7; line-height: 1.65;
+        background: rgba(255,255,255,.035); border-left: 3px solid var(--ac);
+        padding: 7px 11px; margin: 0 0 8px; border-radius: 0 8px 8px 0;
+    }
+    .menu-item { display: flex; align-items: baseline; padding: 5.5px 0; }
+    .menu-item .cmd {
+        flex: 0 0 190px; font-size: 13.5px; font-weight: bold; color: #ffd98a;
+        font-family: 'Menlo', 'Consolas', 'Microsoft YaHei', monospace;
+    }
+    .menu-item .desc { flex: 1; font-size: 12.5px; color: #9aa3c7; line-height: 1.5; }
+    .tips { margin: 4px 0 6px; padding: 12px 16px; border-radius: 12px;
+            background: rgba(233,196,106,.06); border: 1px dashed rgba(233,196,106,.4); }
+    .tips .t-title { font-size: 13px; font-weight: bold; color: #e9c46a; padding-bottom: 6px; letter-spacing: 2px; }
+    .tips .t-row { display: flex; padding: 3px 0; font-size: 12px; }
+    .tips .t-label { flex: 0 0 100px; color: #9aa3c7; }
+    .tips .t-value { flex: 1; color: #e8ebff; font-weight: bold; }
+
+    /* ================= 飘落装饰（Noto 彩色矢量粒子，随档位浮现） ================= */
+    .deco { position: absolute; inset: 0; pointer-events: none; overflow: hidden; border-radius: 22px; }
+    .deco img { position: absolute; display: block;
+                filter: drop-shadow(0 0 5px rgba(255,255,255,.3)) drop-shadow(0 2px 3px rgba(0,0,0,.45)); }
+    .deco .petals, .deco .stars-layer { position: absolute; inset: 0; opacity: 0; }
+    .theme-lv3 .petals { opacity: .95; }
+    .theme-lv4 .petals, .theme-lv5 .petals { opacity: 1; }
+    .deco .stars-layer span { position: absolute; display: block; }
+    .theme-lv4 .stars-layer { opacity: .9; }
+    .theme-lv5 .stars-layer { opacity: 1; }
+
+    /* lv4+ 底部光晕 / lv2+ 顶部极光带 */
+    .foot-glow { position: absolute; bottom: 0; left: 0; right: 0; height: 80px; opacity: 0;
+                 background: linear-gradient(to top, var(--glow), transparent); pointer-events: none; }
+    .theme-lv4 .foot-glow, .theme-lv5 .foot-glow { opacity: 1; }
+    .aurora { position: absolute; top: 0; left: 0; right: 0; height: 4px; opacity: 0;
+              background: linear-gradient(90deg,#ff9a9e,#fad0c4,#fbc2eb,#a18cd1,#84fab0,#8fd3f4,#ff9a9e); }
+    .theme-lv2 .aurora, .theme-lv3 .aurora, .theme-lv4 .aurora, .theme-lv5 .aurora { opacity: .9; }
+    .theme-lv5.card { border-color: #e9c46a; outline-color: rgba(233,196,106,.3);
+                      box-shadow: 0 14px 44px rgba(0,0,0,.55), 0 0 34px var(--glow); }
+
+    /* ================= 页脚 ================= */
+    .footer { position: relative; z-index: 2; padding: 10px 0 16px; text-align: center;
+              color: #8a93b8; font-size: 12px; }
+    .footer .divider { display: block; margin: 0 auto 6px; width: 300px; height: 14px;
+                       color: #e9c46a; opacity: .75; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+<!--PATTERNS-->
+</svg>
+<div class="card theme-{{ theme }} layout-{{ layout }}">
+    <i class="corner tl"><svg width="118" height="118" viewBox="0 0 150 150"><use href="#gz-corner"/></svg></i>
+    <i class="corner tr"><svg width="118" height="118" viewBox="0 0 150 150"><use href="#gz-corner"/></svg></i>
+    <i class="corner bl"><svg width="118" height="118" viewBox="0 0 150 150"><use href="#gz-corner"/></svg></i>
+    <i class="corner br"><svg width="118" height="118" viewBox="0 0 150 150"><use href="#gz-corner"/></svg></i>
+    <i class="rosette"><svg width="430" height="430" viewBox="0 0 400 400"><use href="#gz-rosette"/></svg></i>
+    <i class="aurora"></i>
+    <i class="foot-glow"></i>
+    {% if layout == 'two' and deco_hearts %}
+    <div class="deco">
+        <i class="petals">
+            {% for h in deco_hearts %}
+            <img src="{{ 'ASSET:blossom' if '🌸' in h.ch else 'ASSET:petalheart' }}"
+                 style="left:{{ h.x }}%;top:{{ h.y }}%;width:{{ h.size + 12 }}px;opacity:{{ h.op }};transform:rotate({{ h.rot }}deg);">
+            {% endfor %}
+        </i>
+        <i class="stars-layer">
+            {% for st in deco_stars %}
+            <img src="{{ 'ASSET:sparkle' if '✨' in st.ch else 'ASSET:star' }}"
+                 style="left:{{ st.x }}%;top:{{ st.y }}%;width:{{ st.size }}px;opacity:{{ st.op }};">
+            {% endfor %}
+        </i>
+    </div>
+    {% endif %}
+    <div class="banner">
+        {% if theme == 'lv5' %}<img class="crest" src="ASSET:crown">{% endif %}
+        <div class="title">{{ title }}</div>
+        {% if badge %}<div class="badge">{{ badge }}</div>{% endif %}
+        <div class="banner-line"></div>
+    </div>
+    {% if layout == 'record' %}
+    <div class="record">
+        <div class="rec-sum">
+            <div><div class="n">{{ single_count }}</div><div class="t">单身</div></div>
+            <div><div class="n">{{ couple_count }}</div><div class="t">恋爱中</div></div>
+            <div><div class="n">{{ tea_count }}</div><div class="t">相亲中</div></div>
+        </div>
+        <div class="rec-h"><svg viewBox="-10 0 40 16" style="overflow:visible"><use href="#gz-lozenge"/></svg>恋爱中</div>
+        {% if couples %}
+            {% for c in couples %}
+            <div class="rec-couple">
+                <div class="rec-line">{{ c.a_name }} ❤ {{ c.b_name }}
+                    {% if c.tag %}<span class="rec-tag">{{ c.tag }}</span>{% endif %}
+                    <span class="aff">好感 {{ c.affection }} · 第 {{ c.days }} 天</span>
+                </div>
+                <div class="rec-bar {{ c.theme }}"><div style="width:{{ c.bar }}%"></div></div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="rec-empty">本群暂时还没有情侣～</div>
+        {% endif %}
+        <div class="rec-h"><svg viewBox="-10 0 40 16" style="overflow:visible"><use href="#gz-lozenge"/></svg>相亲中</div>
+        {% if teas %}
+            {% for t in teas %}
+            <div class="rec-tea"><span class="dot">🍵</span>{{ t.a_name }} 与 {{ t.b_name }}</div>
+            {% endfor %}
+        {% else %}
+            <div class="rec-empty">今天还没有人相亲～</div>
+        {% endif %}
+    </div>
+    {% elif layout == 'menu' %}
+    <div class="menu">
+        {% for g in groups %}
+        <div class="menu-group">
+            <div class="g-title"><svg viewBox="-10 0 40 16" style="overflow:visible"><use href="#gz-lozenge"/></svg>{{ g.group }}{% if g.tag %}<span class="g-tag">{{ g.tag }}</span>{% endif %}</div>
+            {% if g.note %}<div class="g-note">{{ g.note }}</div>{% endif %}
+            {% for it in g['items'] %}
+            <div class="menu-item">
+                <div class="cmd">{{ it.cmd }}</div>
+                <div class="desc">{{ it.desc }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% if tips %}
+    <div class="tips">
+        <div class="t-title">⚙️ 当前参数</div>
+        {% for t in tips %}
+        <div class="t-row">
+            <div class="t-label">{{ t.label }}</div>
+            <div class="t-value">{{ t.value }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% elif layout == 'two' %}
+    <div class="couple">
+        <div class="side">
+            {% if a_avatar %}<div class="avatar-wrap"><img class="avatar" src="{{ a_avatar }}"></div>{% endif %}
+            <div class="name">{{ a_name }}</div>
+        </div>
+        {% if heart %}
+        <div class="heart">
+            {% if '🍵' in heart %}<img src="ASSET:teacup">
+            {% elif '❤' in heart or '♥' in heart %}<img src="ASSET:twohearts">
+            {% else %}<span>{{ heart }}</span>{% endif %}
+        </div>
+        {% endif %}
+        <div class="side">
+            {% if b_avatar %}<div class="avatar-wrap"><img class="avatar" src="{{ b_avatar }}"></div>{% endif %}
+            <div class="name">{{ b_name }}</div>
+        </div>
+    </div>
+    {% else %}
+    <div class="couple">
+        <div class="side">
+            {% if a_avatar %}<div class="avatar-wrap"><img class="avatar" src="{{ a_avatar }}"></div>{% endif %}
+            <div class="name">{{ a_name }}</div>
+        </div>
+        <div class="heart"><img src="ASSET:moon"></div>
+    </div>
+    {% endif %}
+    {% if layout != 'menu' and layout != 'record' %}
+    <div class="rows">
+        {% for r in rows %}
+        <div class="row">
+            <div class="label">{{ r.label }}</div>
+            {% if r.bar is not none %}
+            <div class="bar"><div style="width: {{ r.bar }}%"></div></div>
+            {% endif %}
+            <div class="value" {% if r.bar is not none %}style="flex: 0 0 90px; text-align: right;"{% endif %}>{{ r.value }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="footer">
+        <svg class="divider" viewBox="0 0 560 24"><use href="#gz-divider"/></svg>
+        {% if quote %}「 {{ quote }} 」{% endif %}
+    </div>
+</div>
+</body>
+</html>
