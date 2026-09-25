@@ -1,8 +1,14 @@
 name: astrbot_plugin_zudui
 desc: "组对象：群恋爱互动插件。表白（含出轨线）/抢对象/拆散/相亲/送礼/缘分卡，好感度影响被抢成功率，无前缀精准匹配，手打四字+引用回复确认。"
 display_name: 组对象
+short_desc: "表白/抢对象/拆散/相亲，好感度决定被抢成功率，缘分卡一图流"
 version: v1.1.0
 author: 深夏
 repo: "https://github.com/liao0050go-stack/astrbot_plugin_zudui"
+tags:
+  - 娱乐
+  - 群互动
+  - 恋爱
+  - 图片渲染
 support_platforms:
   - aiocqhttp
